@@ -7,7 +7,8 @@ def add_order():
     date = request.json['date']
     total_price = request.json['total_price']
     product = request.json['product']
-    new_order = Order(customer_id=customer_id, date=date, total_price=total_price, product=product)
+    status = request.json['status']
+    new_order = Order(customer_id=customer_id, date=date, total_price=total_price, product=product, status=status)
     db.session.add(new_order)
     db.session.commit()
     return order_schema.jsonify({"message": "New order added successfully"}), 201
@@ -24,11 +25,15 @@ def get_one_order(id):
     return order_schema.jsonify(one_order)
 
 @app.route('/orders/<int:id>', methods=['DELETE'])
-def delete_order(id):
-    order_to_delete = Order.query.get_or_404(id)
-    db.session.delete(order_to_delete)
+def cancel_order(id):
+    order_delete = Order.query.get_or_404(id)
+    if order_delete.status in ['Shipped', 'Delivered']:
+        return (400, {"message": "Order cannot be deleted/cancelled as it has already shipped or been deleted."})
+    
+    order_delete.status = 'Cancelled'
+    db.session.delete(order_delete)
     db.session.commit()
-    return order_schema.jsonify({"message": "Customer Account was deleted successfully."}), 200  
+    return order_schema.jsonify({"message": "Order was cancelled successfully."}), 200  
 
 
 @app.route('/orders/<int:id>', methods=['PUT'])
@@ -37,10 +42,15 @@ def update_order():
     customer_id = request.json['customer_id']
     date = request.json['date']
     total_price = request.json['total_price']
-    delivery_status = request.json['delivery_status']
+    status = request.json['status']
     update_order.customer_id = customer_id
     update_order.date = date
     update_order.total_price = total_price
-    update_order.delivery_status = delivery_status
+    update_order.status = status
     db.session.commit()
     return order_schema.jsonify(update_order)
+
+@app.route('/orders/<int:id>', methods=['GET'])
+def track_order(id):
+    order = Order.query.get_or_404(id)
+    return order_schema.jsonify(order)

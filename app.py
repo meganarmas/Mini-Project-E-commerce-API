@@ -40,19 +40,20 @@ order_product = db.Table('order_product',
 )
 
 class OrderSchema(ma.Schema):
-    name = fields.String(required=True)
     date = fields.Date(required=True)
-    delivery_status = fields.String(required=True)
+    quantity = fields.String(required=True)
+    status = fields.String(required=True)
     total_price = fields.Float(required=True)
 
 class Meta:
-        fields = ("id", "date", "total_price", "delivery_status")
+        fields = ("date", "quantity" "total_price", "status")
 
 class Order(db.Model):
     __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
-    delivery_status = db.Column(db.String(50), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(50), nullable=False)
     total_price = db.Column(db.Float, nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
     product = db.relationship('order', secondary=order_product, backref=db.backref('products'))

@@ -16,7 +16,7 @@ def get_orders():
     all_products = Products.query(all)
     return jsonify(products_schema.dump(all_products))
 
-@app.route('/orders/<int:id>', methods=['GET'])
+@app.route('/products/<int:id>', methods=['GET'])
 def get_one_order(id):
     one_product = Products.query.get(id)
     return product_schema.jsonify(one_product)
