@@ -27,12 +27,12 @@ def delete_customer(id):
 
 @app.route('/customers/<int:id>', methods=['PUT'])
 def update_customer():
-    member = Customer.query.get_or_404(id)
+    update_customer = Customer.query.get_or_404(id)
     name = request.json['name']
     email = request.json['email']
     phone = request.json['phone']
-    member.name = name
-    member.email = email
-    member.phone = phone
+    update_customer.name = name
+    update_customer.email = email
+    update_customer.phone = phone
     db.session.commit()
-    return customer_schema.jsonify(member)
+    return customer_schema.jsonify(update_customer)

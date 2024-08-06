@@ -46,7 +46,7 @@ class OrderSchema(ma.Schema):
     total_price = fields.Float(required=True)
 
 class Meta:
-        fields = ("id", "date", "email", "delivery_status")
+        fields = ("id", "date", "total_price", "delivery_status")
 
 class Order(db.Model):
     __tablename__ = 'orders'
