@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+from flask import request, jsonify
+from marshmallow import ValidationError
 from app import db, CustomerAccount, customer_account_schema, customer_accounts_schema
 
 
@@ -15,13 +16,19 @@ def add_customer_account():
 
 @app.route('/customer_accounts/<int:id>', methods=['GET'])
 def get_customer_account():
-    all_customers_accounts = CustomerAccount.query(all)
-    return jsonify(customer_accounts_schema.dump(all_customers_accounts))
+    try:
+        all_customers_accounts = CustomerAccount.query(all)
+        return jsonify(customer_accounts_schema.dump(all_customers_accounts))
+    except ValidationError as e:
+        print(f"Error: {e}")
 
 @app.route('/customer_accounts/<int:id>', methods=['GET'])
 def get_customer_account(id):
-    one_account = CustomerAccount.query.get(id)
-    return customer_account_schema.jsonify(one_account)
+    try:
+        one_account = CustomerAccount.query.get(id)
+        return customer_account_schema.jsonify(one_account)
+    except ValidationError as e:
+                print(f"Error: {e}")
 
 @app.route('/customer_accounts/<int:id>', methods=['DELETE'])
 def delete_customer_account(id):

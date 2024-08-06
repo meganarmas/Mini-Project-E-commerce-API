@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+from flask import request, jsonify
+from marshmallow import ValidationError
 from app import db, Customer, customer_schema, customers_schema
 
 @app.route('/customers', methods=['POST'])
@@ -14,8 +15,19 @@ def add_customer():
 
 @app.route('/customers/<int:id>', methods=['GET'])
 def get_customer():
-    all_customers = Customer.query(all)
-    return jsonify(customers_schema.dump(all_customers))
+    try:
+        all_customers = Customer.query(all)
+        return jsonify(customers_schema.dump(all_customers))
+    except ValidationError as e:
+        print(f"Error: {e}")
+
+@app.route('/customer_accounts/<int:id>', methods=['GET'])
+def get_one_customer(id):
+    try:
+        one_customer = Customer.query.get(id)
+        return customer_schema.jsonify(one_customer)
+    except ValidationError as e:
+                print(f"Error: {e}")
 
 @app.route('/customers/<int:id>', methods=['DELETE'])
 def delete_customer(id):

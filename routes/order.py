@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+from flask import request, jsonify
+from marshmallow import ValidationError
 from app import db, Order, order_schema, orders_schema
 
 @app.route('/orders', methods=['POST'])
@@ -16,13 +17,19 @@ def add_order():
 
 @app.route('/orders/<int:id>', methods=['GET'])
 def get_orders():
-    all_orders = Order.query(all)
-    return jsonify(orders_schema.dump(all_orders))
+    try:
+        all_orders = Order.query(all)
+        return jsonify(orders_schema.dump(all_orders))
+    except ValidationError as e:
+            print(f"Error: {e}")
 
 @app.route('/orders/<int:id>', methods=['GET'])
 def get_one_order(id):
-    one_order = Order.query.get(id)
-    return order_schema.jsonify(one_order)
+    try:
+        one_order = Order.query.get(id)
+        return order_schema.jsonify(one_order)
+    except ValidationError as e:
+                print(f"Error: {e}")
 
 @app.route('/orders/<int:id>', methods=['DELETE'])
 def cancel_order(id):
