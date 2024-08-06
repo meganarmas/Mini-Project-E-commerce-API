@@ -6,11 +6,11 @@ import mysql.connector
 from mysql.connector import Error
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:*PasswordHere@127.0.0.1/e_commerce_api'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:*PASSWORDHERE@127.0.0.1/e_commerce_api'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
-#define_all_schemas
+
 #customer
 
 class CustomerSchema(ma.Schema):
@@ -42,7 +42,7 @@ class Meta:
         fields = ("date", "quantity" "total_price", "status")
 
 order_product = db.Table('order_product', 
-        db.Column('order_id', db.Integer, db.ForeignKey('orders.id'), primary_key=True),
+        db.Column('orders_id', db.Integer, db.ForeignKey('orders.id'), primary_key=True),
         db.Column('product_id', db.Integer, db.ForeignKey('products.id'), primary_key=True)
 
 )
@@ -55,7 +55,7 @@ class Order(db.Model):
     status = db.Column(db.String(50), nullable=False)
     total_price = db.Column(db.Float, nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
-    product = db.relationship('order', secondary=order_product, backref=db.backref('products'))
+    product = db.relationship('Product', secondary=order_product, backref='orders')
 
 order_schema = OrderSchema()
 orders_schema = OrderSchema(many=True)
@@ -98,7 +98,7 @@ class Products(db.Model):
     name = db.Column(db.String(255), nullable=False)
     price = db.Column(db.Float, nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
-    price = db.relationship('orders', secondary=order_product, backref=db.backref('products'))
+    price = db.relationship('Orders', secondary=order_product, backref=db.backref('products'))
 
 product_schema = ProductsSchema()
 products_schema = ProductsSchema(many=True)
@@ -226,7 +226,7 @@ def add_customer_account():
 
 
 @app.route('/customer_accounts/<int:id>', methods=['GET'])
-def get_customer_account():
+def get_all_customer_account():
     try:
         all_customers_accounts = CustomerAccount.query(all)
         return jsonify(customer_accounts_schema.dump(all_customers_accounts))
@@ -263,7 +263,7 @@ def update_customer_account():
 
 #products
 @app.route('/products', methods=['POST'])
-def add_order():
+def add_product():
     name = request.json['name']
     price = request.json['price']
     new_product = Products(name=name, price=price)
@@ -273,7 +273,7 @@ def add_order():
 
 
 @app.route('/products/<int:id>', methods=['GET'])
-def get_orders():
+def get_products():
     try:
         all_products = Products.query(all)
         return jsonify(products_schema.dump(all_products))
@@ -281,7 +281,7 @@ def get_orders():
             print(f"Error: {e}")
 
 @app.route('/products/<int:id>', methods=['GET'])
-def get_one_order(id):
+def get_one_product(id):
     try:
         one_product = Products.query.get(id)
         return product_schema.jsonify(one_product)
