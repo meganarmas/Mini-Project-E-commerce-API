@@ -8,7 +8,7 @@ import mysql.connector
 from mysql.connector import Error
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:PASSWORDHERE@127.0.0.1/e_commerce_api'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:Calliestar12!@127.0.0.1/e_commerce_api'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 cors = CORS(app)
