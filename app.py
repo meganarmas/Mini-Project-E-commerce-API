@@ -1,14 +1,17 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+from flask_cors import CORS
+from flask_cors import cross_origin
 from marshmallow import fields, Schema, ValidationError
 import mysql.connector
 from mysql.connector import Error
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:*PASSWORDHERE@127.0.0.1/e_commerce_api'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:PASSWORDHERE@127.0.0.1/e_commerce_api'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+cors = CORS(app)
 
 
 #customer
@@ -108,6 +111,7 @@ with app.app_context():
 
 #customers
 @app.route('/customers', methods=['POST'])
+@cross_origin()
 def add_customer():
     name = request.json['name']
     email = request.json['email']
@@ -118,6 +122,7 @@ def add_customer():
     return customer_schema.jsonify({"message": "New customer added successfully"}), 201
 
 @app.route('/customers/<int:id>', methods=['GET'])
+@cross_origin()
 def get_customer():
     try:
         all_customers = Customer.query(all)
@@ -126,6 +131,7 @@ def get_customer():
         print(f"Error: {e}")
 
 @app.route('/customer_accounts/<int:id>', methods=['GET'])
+@cross_origin()
 def get_one_customer(id):
     try:
         one_customer = Customer.query.get(id)
@@ -134,6 +140,7 @@ def get_one_customer(id):
                 print(f"Error: {e}")
 
 @app.route('/customers/<int:id>', methods=['DELETE'])
+@cross_origin()
 def delete_customer(id):
     customer = Customer.query.get_or_404(id)
     db.session.delete(customer)
@@ -142,6 +149,7 @@ def delete_customer(id):
 
 
 @app.route('/customers/<int:id>', methods=['PUT'])
+@cross_origin()
 def update_customer():
     update_customer = Customer.query.get_or_404(id)
     name = request.json['name']
@@ -154,6 +162,7 @@ def update_customer():
     return customer_schema.jsonify(update_customer)
 
 @app.route('/orders', methods=['POST'])
+@cross_origin()
 def add_order():
     customer_id = request.json['customer_id']
     date = request.json['date']
@@ -167,6 +176,7 @@ def add_order():
 
 #orders
 @app.route('/orders/<int:id>', methods=['GET'])
+@cross_origin()
 def get_orders():
     try:
         all_orders = Order.query(all)
@@ -175,6 +185,7 @@ def get_orders():
             print(f"Error: {e}")
 
 @app.route('/orders/<int:id>', methods=['GET'])
+@cross_origin()
 def get_one_order(id):
     try:
         one_order = Order.query.get(id)
@@ -183,6 +194,7 @@ def get_one_order(id):
                 print(f"Error: {e}")
 
 @app.route('/orders/<int:id>', methods=['DELETE'])
+@cross_origin()
 def cancel_order(id):
     order_delete = Order.query.get_or_404(id)
     if order_delete.status in ['Shipped', 'Delivered']:
@@ -195,6 +207,7 @@ def cancel_order(id):
 
 
 @app.route('/orders/<int:id>', methods=['PUT'])
+@cross_origin()
 def update_order():
     update_order = Order.query.get_or_404(id)
     customer_id = request.json['customer_id']
@@ -209,12 +222,14 @@ def update_order():
     return order_schema.jsonify(update_order)
 
 @app.route('/orders/<int:id>', methods=['GET'])
+@cross_origin()
 def track_order(id):
     order = Order.query.get_or_404(id)
     return order_schema.jsonify(order)
 
 # customer account
 @app.route('/customer_accounts', methods=['POST'])
+@cross_origin()
 def add_customer_account():
     username = request.json['username']
     password = request.json['password']
@@ -226,6 +241,7 @@ def add_customer_account():
 
 
 @app.route('/customer_accounts/<int:id>', methods=['GET'])
+@cross_origin()
 def get_all_customer_account():
     try:
         all_customers_accounts = CustomerAccount.query(all)
@@ -234,6 +250,7 @@ def get_all_customer_account():
         print(f"Error: {e}")
 
 @app.route('/customer_accounts/<int:id>', methods=['GET'])
+@cross_origin()
 def get_customer_account(id):
     try:
         one_account = CustomerAccount.query.get(id)
@@ -242,6 +259,7 @@ def get_customer_account(id):
                 print(f"Error: {e}")
 
 @app.route('/customer_accounts/<int:id>', methods=['DELETE'])
+@cross_origin()
 def delete_customer_account(id):
     customer_account = CustomerAccount.query.get_or_404(id)
     db.session.delete(customer_account)
@@ -250,6 +268,7 @@ def delete_customer_account(id):
 
 
 @app.route('/customer_accounts/<int:id>', methods=['PUT'])
+@cross_origin()
 def update_customer_account():
     update_account = CustomerAccount.query.get_or_404(id)
     username = request.json['username']
@@ -263,6 +282,7 @@ def update_customer_account():
 
 #products
 @app.route('/products', methods=['POST'])
+@cross_origin()
 def add_product():
     name = request.json['name']
     price = request.json['price']
@@ -273,6 +293,7 @@ def add_product():
 
 
 @app.route('/products/<int:id>', methods=['GET'])
+@cross_origin()
 def get_products():
     try:
         all_products = Products.query(all)
@@ -281,6 +302,7 @@ def get_products():
             print(f"Error: {e}")
 
 @app.route('/products/<int:id>', methods=['GET'])
+@cross_origin()
 def get_one_product(id):
     try:
         one_product = Products.query.get(id)
@@ -289,6 +311,7 @@ def get_one_product(id):
                 print(f"Error: {e}")
 
 @app.route('/products/<int:id>', methods=['DELETE'])
+@cross_origin()
 def delete_product(id):
     delete_product = Products.query.get_or_404(id)
     db.session.delete(delete_product)
@@ -297,6 +320,7 @@ def delete_product(id):
 
 
 @app.route('/products/<int:id>', methods=['PUT'])
+@cross_origin()
 def update_product_info():
     update_product = Products.query.get_or_404(id)
     name = request.json['name']
