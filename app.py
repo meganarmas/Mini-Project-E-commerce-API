@@ -8,7 +8,7 @@ import mysql.connector
 from mysql.connector import Error
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:Calliestar12!@127.0.0.1/e_commerce_api'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:Calliepeg12!@localhost/e_commerce_api'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 cors = CORS(app)
@@ -36,8 +36,6 @@ customers_schema = CustomerSchema(many=True)
 
 #order
 class OrderSchema(ma.Schema):
-    date = fields.Date(required=True)
-    quantity = fields.String(required=True)
     status = fields.String(required=True)
     total_price = fields.Float(required=True)
 
@@ -53,12 +51,9 @@ order_product = db.Table('order_product',
 class Order(db.Model):
     __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(50), nullable=False)
     total_price = db.Column(db.Float, nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
-    product = db.relationship('Product', secondary=order_product, backref='orders')
 
 order_schema = OrderSchema()
 orders_schema = OrderSchema(many=True)
@@ -90,7 +85,7 @@ customer_accounts_schema = CustomerAccountSchema(many=True)
 class ProductsSchema(ma.Schema):
     id = fields.String(required=True)
     name = fields.String(required=True)
-    price = fields.Float(required=True)
+    price = fields.Integer(required=True)
 
     class Meta:
         fields = ("id", "name", "price", "customer_id")
@@ -99,15 +94,13 @@ class Products(db.Model):
     __tablename__ = 'products'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-    price = db.Column(db.Float, nullable=False)
+    price = db.Column(db.Integer, nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
-    price = db.relationship('Orders', secondary=order_product, backref=db.backref('products'))
+    # price = db.relationship('Order', secondary=order_product, backref=db.backref('products'))
 
 product_schema = ProductsSchema()
 products_schema = ProductsSchema(many=True)
 
-with app.app_context():
-    db.create_all()
 
 #customers
 @app.route('/customers', methods=['POST'])
@@ -123,10 +116,10 @@ def add_customer():
 
 @app.route('/customers/<int:id>', methods=['GET'])
 @cross_origin()
-def get_customer():
+def get_customer(id):
     try:
-        all_customers = Customer.query(all)
-        return jsonify(customers_schema.dump(all_customers))
+        all_customers = Customer.query.get_or_404(id)
+        return customer_schema.jsonify(all_customers)
     except ValidationError as e:
         print(f"Error: {e}")
 
@@ -142,8 +135,8 @@ def get_one_customer(id):
 @app.route('/customers/<int:id>', methods=['DELETE'])
 @cross_origin()
 def delete_customer(id):
-    customer = Customer.query.get_or_404(id)
-    db.session.delete(customer)
+    remove_customer = Customer.query.get_or_404(id)
+    db.session.delete(remove_customer)
     db.session.commit()
     return customer_schema.jsonify({"message": "Customer's information deleted successfully."}), 200  
 
@@ -165,11 +158,9 @@ def update_customer():
 @cross_origin()
 def add_order():
     customer_id = request.json['customer_id']
-    date = request.json['date']
-    total_price = request.json['total_price']
-    product = request.json['product']
     status = request.json['status']
-    new_order = Order(customer_id=customer_id, date=date, total_price=total_price, product=product, status=status)
+    total_price = request.json['total_price']
+    new_order = Order(customer_id=customer_id, total_price=total_price, status=status)
     db.session.add(new_order)
     db.session.commit()
     return order_schema.jsonify({"message": "New order added successfully"}), 201
@@ -177,10 +168,10 @@ def add_order():
 #orders
 @app.route('/orders/<int:id>', methods=['GET'])
 @cross_origin()
-def get_orders():
+def get_orders(id):
     try:
-        all_orders = Order.query(all)
-        return jsonify(orders_schema.dump(all_orders))
+        all_orders = Order.query.get_or_404(id)
+        return order_schema.jsonify(all_orders)
     except ValidationError as e:
             print(f"Error: {e}")
 
@@ -188,7 +179,7 @@ def get_orders():
 @cross_origin()
 def get_one_order(id):
     try:
-        one_order = Order.query.get(id)
+        one_order = Order.query.get_or_404(id)
         return order_schema.jsonify(one_order)
     except ValidationError as e:
                 print(f"Error: {e}")
@@ -286,6 +277,7 @@ def update_customer_account():
 def add_product():
     name = request.json['name']
     price = request.json['price']
+    print(request.json)
     new_product = Products(name=name, price=price)
     db.session.add(new_product)
     db.session.commit()
@@ -305,7 +297,7 @@ def get_products():
 @cross_origin()
 def get_one_product(id):
     try:
-        one_product = Products.query.get(id)
+        one_product = Products.query.get_or_404(id)
         return product_schema.jsonify(one_product)
     except ValidationError as e:
                 print(f"Error: {e}")
@@ -321,7 +313,7 @@ def delete_product(id):
 
 @app.route('/products/<int:id>', methods=['PUT'])
 @cross_origin()
-def update_product_info():
+def update_product_info(id):
     update_product = Products.query.get_or_404(id)
     name = request.json['name']
     price = request.json['price']
@@ -331,4 +323,7 @@ def update_product_info():
     return product_schema.jsonify(update_product)
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
     app.run(debug=True)
