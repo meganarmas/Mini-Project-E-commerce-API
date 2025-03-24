@@ -1,4 +1,4 @@
-#Welcome to the E-commerce API application!
+# Welcome to the E-commerce API application!
 
 To use this program, please ensure you are set up in a virtual environment. Once set up, use pip install to install flask, flask_marshmallow, mysql.connector, flask_sqlalchemy. When they are all installed, you can begin.
 
